@@ -53,34 +53,21 @@ class DentalBenchmark(ABC):
 Options:
 {chr(10).join(options)}
 
-Please select the correct answer (A, B, C, or D) and briefly explain your reasoning."""
+Please select the correct answer and respond with only the letter (A, B, C, or D)."""
         
         return formatted
     
     def extract_answer_choice(self, response: str) -> str:
         """Extract the answer choice (A, B, C, D) from model response"""
-        response_upper = response.upper()
+        response_clean = response.strip().upper()
         
-        # Look for explicit answer patterns
-        patterns = [
-            "ANSWER: ",
-            "ANSWER IS ",
-            "CORRECT ANSWER: ",
-            "THE ANSWER IS ",
-            "I CHOOSE ",
-            "OPTION "
-        ]
+        # If response is already just a single letter
+        if response_clean in ['A', 'B', 'C', 'D']:
+            return response_clean
         
-        for pattern in patterns:
-            if pattern in response_upper:
-                idx = response_upper.find(pattern) + len(pattern)
-                next_char = response_upper[idx:idx+1]
-                if next_char in ['A', 'B', 'C', 'D']:
-                    return next_char
-        
-        # Look for first occurrence of A, B, C, or D
+        # Look for first occurrence of A, B, C, or D in the response
         for char in ['A', 'B', 'C', 'D']:
-            if char in response_upper:
+            if char in response_clean:
                 return char
                 
         return "UNKNOWN"

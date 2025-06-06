@@ -47,7 +47,7 @@ class OpenAIBenchmark(DentalBenchmark):
         
         # Model configuration
         self.model_id = model_id
-        self.max_tokens = 500
+        self.max_tokens = 5  # Only need one letter (A, B, C, or D)
         self.temperature = 0.1  # Low temperature for consistent medical answers
         
         # Checkpoint configuration
@@ -65,7 +65,7 @@ class OpenAIBenchmark(DentalBenchmark):
                 'messages': [
                     {
                         "role": "system", 
-                        "content": "You are a medical expert specializing in dental medicine. Answer multiple choice questions accurately and provide clear reasoning."
+                        "content": "You are a medical expert. Answer multiple choice questions with only the letter (A, B, C, or D). Do not provide explanations."
                     },
                     {
                         "role": "user", 
@@ -77,7 +77,8 @@ class OpenAIBenchmark(DentalBenchmark):
             # Use different parameters based on model
             if 'o3' in self.model_id.lower():
                 # O3 models use max_completion_tokens and don't support temperature
-                params['max_completion_tokens'] = self.max_tokens
+                # O3 models may need more tokens for proper response
+                params['max_completion_tokens'] = max(50, self.max_tokens)
                 # Note: temperature is not supported for O3 models
             else:
                 # Other models use max_tokens and temperature
