@@ -17,6 +17,15 @@ GPT-4.1-nano Dental Benchmark Results:
 - This Run Accuracy: 690/1311 (52.63%)
 - Duration: 675.88 seconds
 
+
+O3-mini Dental Benchmark Results:
+- Model: o3-mini (o3-mini)
+- Dataset Total: 1318 questions
+- Total Completed: 1318/1318
+- This Run: 1311 questions processed
+- This Run Accuracy: 839/1311 (64.00%)
+- Duration: 4790.66 seconds
+
 ## Key Features
 
 ✅ **Checkpoint Support**: Automatically saves progress and can resume from interruptions  
