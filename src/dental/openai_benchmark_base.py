@@ -58,11 +58,7 @@ class OpenAIBenchmark(DentalBenchmark):
                 break
             project_root = os.path.dirname(project_root)
         
-        # Create checkpoints directory in project root
-        self.checkpoint_dir = os.path.join(project_root, "checkpoints", "dental")
-        os.makedirs(self.checkpoint_dir, exist_ok=True)
-        self.checkpoint_file = os.path.join(self.checkpoint_dir, f"{model_name}_checkpoint.json")
-        
+
     def query_model(self, prompt: str) -> str:
         """Query OpenAI model"""
         try:
@@ -102,80 +98,77 @@ class OpenAIBenchmark(DentalBenchmark):
             logger.error(f"Error querying {self.model_name}: {e}")
             raise e
     
-    def save_checkpoint(self, current_index: int):
-        """Save current progress to checkpoint file - only question index"""
-        checkpoint_data = {
-            'model_name': self.model_name,
-            'current_index': current_index,
-            'total_questions': len(self.questions),
-            'timestamp': datetime.now().isoformat(),
-            'data_path': self.data_path
-        }
-        
-        with open(self.checkpoint_file, 'w', encoding='utf-8') as f:
-            json.dump(checkpoint_data, f, indent=2, ensure_ascii=False)
-            
-        logger.info(f"Checkpoint saved: {current_index}/{len(self.questions)} questions completed")
-    
-    def load_checkpoint(self) -> int:
-        """Load checkpoint if exists. Returns start_index"""
-        if not os.path.exists(self.checkpoint_file):
+    def get_completed_count(self) -> int:
+        """Get count of completed questions from CSV file"""
+        if not os.path.exists(self.csv_path):
             return 0
         
         try:
-            with open(self.checkpoint_file, 'r', encoding='utf-8') as f:
-                checkpoint_data = json.load(f)
-            
-            # Verify checkpoint is for the same data
-            if checkpoint_data.get('data_path') != self.data_path:
-                logger.warning("Checkpoint data path mismatch. Starting from beginning.")
-                return 0
-            
-            if checkpoint_data.get('total_questions') != len(self.questions):
-                logger.warning("Question count mismatch. Starting from beginning.")
-                return 0
-            
-            start_index = checkpoint_data.get('current_index', 0)
-            
-            logger.info(f"Resuming from checkpoint: {start_index}/{len(self.questions)} questions completed")
-            return start_index
-            
+            import csv
+            with open(self.csv_path, 'r', encoding='utf-8') as f:
+                reader = csv.reader(f)
+                rows = list(reader)
+                # Count rows excluding header
+                return max(0, len(rows) - 1)  # -1 for header
         except Exception as e:
-            logger.error(f"Error loading checkpoint: {e}")
+            logger.error(f"Error reading existing CSV: {e}")
             return 0
     
-    def clear_checkpoint(self):
-        """Clear checkpoint files"""
-        if os.path.exists(self.checkpoint_file):
-            os.remove(self.checkpoint_file)
-            logger.info(f"Removed checkpoint file: {self.checkpoint_file}")
-    
-    def run_benchmark(self, save_frequency: int = 5) -> Dict[str, Any]:
-        """Run the complete benchmark with checkpoint support"""
+    def run_benchmark(self, limit: int = None) -> Dict[str, Any]:
+        """Run the benchmark, continuing from existing progress"""
         import time
         
         logger.info(f"Starting {self.model_name} benchmark on dental test set")
         
-        # Load test data if not already loaded
+        # Load full test data 
         if not hasattr(self, 'questions') or not self.questions:
             self.load_test_data()
         
-        # Load checkpoint
-        start_index = self.load_checkpoint()
+        total_questions = len(self.questions)
+        completed_count = self.get_completed_count()
+        
+        logger.info(f"Dataset has {total_questions} total questions")
+        logger.info(f"Already completed {completed_count} questions")
+        
+        # Check if already completed all
+        if completed_count >= total_questions:
+            logger.info(f"✅ All {total_questions} questions already completed!")
+            logger.info(f"CSV results are saved at: {self.csv_path}")
+            return {
+                'model_name': self.model_name,
+                'model_id': self.model_id,
+                'total_questions': total_questions,
+                'completed_questions': completed_count,
+                'new_questions': 0,
+                'correct_answers': 0,
+                'accuracy': 0,
+                'duration_seconds': 0,
+                'timestamp': datetime.now().isoformat(),
+                'results': [],
+                'status': 'already_completed'
+            }
+        
+        # Determine how many questions to run this time
+        remaining_questions = total_questions - completed_count
+        if limit:
+            questions_to_run = min(limit, remaining_questions)
+        else:
+            questions_to_run = remaining_questions
+            
+        start_index = completed_count
+        end_index = start_index + questions_to_run
+        
+        logger.info(f"Will process questions {start_index + 1} to {end_index} ({questions_to_run} questions)")
+        
+        # CSV is already set up in constructor - it will append if file exists, create if not
         
         correct_answers = 0
-        total_questions = len(self.questions)
         start_time = time.time()
-        
-        # Reset results
         self.results = []
         
-        if start_index > 0:
-            logger.info(f"Resuming from question {start_index + 1}/{total_questions}")
-        
-        for i in range(start_index, total_questions):
+        for i in range(start_index, end_index):
             question_data = self.questions[i]
-            logger.info(f"Processing question {i+1}/{total_questions}")
+            logger.info(f"Processing question {i+1}/{total_questions} (#{i-start_index+1} of this run)")
             
             # Format question
             prompt = self.format_question(question_data)
@@ -205,10 +198,6 @@ class OpenAIBenchmark(DentalBenchmark):
                 # Write result to CSV immediately
                 self.write_result_to_csv(result)
                 
-                # Save checkpoint periodically
-                if (i + 1) % save_frequency == 0:
-                    self.save_checkpoint(i + 1)
-                
             except Exception as e:
                 logger.error(f"Error processing question {i+1}: {e}")
                 # Store error result
@@ -226,31 +215,32 @@ class OpenAIBenchmark(DentalBenchmark):
                 
                 # Write error result to CSV immediately
                 self.write_result_to_csv(result)
-                
-                # Save checkpoint on error too
-                self.save_checkpoint(i + 1)
         
         end_time = time.time()
         duration = end_time - start_time
-        accuracy = correct_answers / total_questions if total_questions > 0 else 0
+        accuracy = correct_answers / questions_to_run if questions_to_run > 0 else 0
+        
+        # Final status
+        final_completed = completed_count + questions_to_run
+        final_accuracy_str = f"({accuracy:.2%} this run)" if questions_to_run > 0 else ""
+        
+        logger.info(f"Completed {questions_to_run} questions in {duration:.2f} seconds")
+        logger.info(f"This run: {correct_answers}/{questions_to_run} correct {final_accuracy_str}")
+        logger.info(f"Total progress: {final_completed}/{total_questions}")
         
         # Compile final results
         benchmark_results = {
             'model_name': self.model_name,
             'model_id': self.model_id,
             'total_questions': total_questions,
+            'completed_questions': final_completed,
+            'new_questions': questions_to_run,
             'correct_answers': correct_answers,
             'accuracy': accuracy,
             'duration_seconds': duration,
             'timestamp': datetime.now().isoformat(),
             'results': self.results
         }
-        
-        logger.info(f"Benchmark completed: {correct_answers}/{total_questions} correct ({accuracy:.2%})")
-        logger.info(f"Duration: {duration:.2f} seconds")
-        
-        # Clear checkpoint after successful completion
-        self.clear_checkpoint()
         
         return benchmark_results
     

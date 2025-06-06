@@ -27,11 +27,9 @@ def main():
     parser.add_argument('--data-path', 
                       help='Path to dental test data (default: auto-detect project root)')
 
-    parser.add_argument('--limit', type=int, help='Limit number of questions for testing')
-    parser.add_argument('--save-frequency', type=int, default=5, 
-                      help='Save checkpoint every N questions (default: 5)')
-    parser.add_argument('--clear-checkpoint', action='store_true',
-                      help='Clear existing checkpoint and start fresh')
+    parser.add_argument('--limit', type=int, help='Number of additional questions to process (default: all remaining)')
+    parser.add_argument('--clear-results', action='store_true',
+                      help='Clear existing results and start fresh')
 
     
     args = parser.parse_args()
@@ -40,30 +38,38 @@ def main():
         # Initialize benchmark
         benchmark = GPT41NanoBenchmark(api_key=args.api_key, data_path=args.data_path)
         
-        # Clear checkpoint if requested
-        if args.clear_checkpoint:
-            benchmark.clear_checkpoint()
-            logger.info("Cleared existing checkpoint")
+        # Clear results if requested
+        if args.clear_results:
+            import os
+            if os.path.exists(benchmark.csv_path):
+                os.remove(benchmark.csv_path)
+                print("✅ Cleared existing results")
+                print(f"Removed: {benchmark.csv_path}")
+                return
+            else:
+                print("ℹ️  No existing results to clear")
+                return
         
-        # Limit questions if specified (for testing)
-        if args.limit:
-            benchmark.load_test_data()
-            benchmark.questions = benchmark.questions[:args.limit]
-            logger.info(f"Limited to {args.limit} questions for testing")
-        
-        # Run benchmark with checkpoint support
-        results = benchmark.run_benchmark(save_frequency=args.save_frequency)
+        # Run benchmark 
+        results = benchmark.run_benchmark(limit=args.limit)
         
         # Print summary
         print("\n" + "="*50)
-        print("GPT-4.1-nano Dental Benchmark Results")
-        print("="*50)
-        print(f"Model: {results['model_name']} ({results['model_id']})")
-        print(f"Total Questions: {results['total_questions']}")
-        print(f"Correct Answers: {results['correct_answers']}")
-        print(f"Accuracy: {results['accuracy']:.2%}")
-        print(f"Duration: {results['duration_seconds']:.2f} seconds")
-        print(f"CSV results saved to: {benchmark.csv_path}")
+        if results.get('status') == 'already_completed':
+            print("GPT-4.1-nano Dental Benchmark - Already Completed")
+            print("="*50)
+            print(f"✅ All {results['total_questions']} questions have been processed.")
+            print(f"CSV results available at: {benchmark.csv_path}")
+        else:
+            print("GPT-4.1-nano Dental Benchmark Results")
+            print("="*50)
+            print(f"Model: {results['model_name']} ({results['model_id']})")
+            print(f"Dataset Total: {results['total_questions']} questions")
+            print(f"Total Completed: {results['completed_questions']}/{results['total_questions']}")
+            print(f"This Run: {results['new_questions']} questions processed")
+            print(f"This Run Accuracy: {results['correct_answers']}/{results['new_questions']} ({results['accuracy']:.2%})")
+            print(f"Duration: {results['duration_seconds']:.2f} seconds")
+            print(f"CSV results saved to: {benchmark.csv_path}")
         
     except Exception as e:
         logger.error(f"Benchmark failed: {e}")

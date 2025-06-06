@@ -42,15 +42,18 @@ class DentalBenchmark(ABC):
         
         csv_path = os.path.join(results_dir, f"{self.model_name}_dental_results.csv")
         
-        # Initialize CSV file with headers
-        with open(csv_path, 'w', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow([
-                'question_id', 'question', 'correct_option', 'predicted_answer', 
-                'is_correct', 'response'
-            ])
+        # Initialize CSV file with headers only if file doesn't exist
+        if not os.path.exists(csv_path):
+            with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    'question_id', 'question', 'correct_option', 'predicted_answer', 
+                    'is_correct', 'response'
+                ])
+            logger.info(f"CSV output initialized: {csv_path}")
+        else:
+            logger.info(f"CSV output will append to existing file: {csv_path}")
         
-        logger.info(f"CSV output initialized: {csv_path}")
         return csv_path
     
     def write_result_to_csv(self, result: Dict[str, Any]):

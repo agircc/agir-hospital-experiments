@@ -24,18 +24,22 @@ help:
 	@echo "Benchmark targets:"
 	@echo "  gpt-4-1-nano           - Run GPT-4.1-nano benchmark"
 	@echo "  gpt-o3                 - Run O3-mini benchmark" 
-	@echo "  benchmark-clean        - Clean benchmark files"
+	@echo "  benchmark-clean        - Clean benchmark results"
 	@echo "  benchmark-status       - Check benchmark progress"
+	@echo "  gpt-4-1-nano-clear     - Clear GPT-4.1-nano results and restart"
+	@echo "  gpt-o3-clear           - Clear O3-mini results and restart"
 	@echo ""
 	@echo "Parameters:"
-	@echo "  LIMIT=N                - Limit to N questions (e.g. make gpt-4-1-nano LIMIT=10)"
+	@echo "  LIMIT=N                - Process N additional questions (e.g. make gpt-4-1-nano LIMIT=10)"
+	@echo "                          If not specified, processes all remaining questions"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make train              # Process only train split"
 	@echo "  make test validation    # Process test and validation splits"
 	@echo "  make OUTPUT_DIR=my_data all  # Use custom output directory"
-	@echo "  make gpt-4-1-nano       # Run GPT-4.1-nano benchmark"
-	@echo "  make gpt-o3 LIMIT=10    # Run O3-mini with 10 questions"
+	@echo "  make gpt-4-1-nano       # Run GPT-4.1-nano benchmark on all remaining questions"
+	@echo "  make gpt-4-1-nano LIMIT=1  # Process 1 additional question (continues from where left off)"
+	@echo "  make gpt-o3 LIMIT=10    # Run O3-mini with 10 additional questions"
 
 # Install dependencies
 .PHONY: install
@@ -97,9 +101,10 @@ benchmark-deps:
 gpt-4-1-nano:
 	@echo "Running GPT-4.1-nano dental benchmark..."
 	@if [ -n "$(LIMIT)" ]; then \
-		echo "Limiting to $(LIMIT) questions..."; \
+		echo "Limiting to $(LIMIT) additional questions..."; \
 		cd src/dental/gpt-4-1-nano && python gpt4_nano_benchmark.py --limit $(LIMIT); \
 	else \
+		echo "Running all remaining questions..."; \
 		cd src/dental/gpt-4-1-nano && python gpt4_nano_benchmark.py; \
 	fi
 
@@ -108,30 +113,47 @@ gpt-4-1-nano:
 gpt-o3: benchmark-deps
 	@echo "Running O3-mini dental benchmark..."
 	@if [ -n "$(LIMIT)" ]; then \
-		echo "Limiting to $(LIMIT) questions..."; \
+		echo "Limiting to $(LIMIT) additional questions..."; \
 		cd src/dental/o3-mini && python o3_mini_benchmark.py --limit $(LIMIT); \
 	else \
+		echo "Running all remaining questions..."; \
 		cd src/dental/o3-mini && python o3_mini_benchmark.py; \
 	fi
 
+# Clear results and restart benchmarks
+.PHONY: gpt-4-1-nano-clear
+gpt-4-1-nano-clear:
+	@echo "Clearing GPT-4.1-nano results and restarting..."
+	cd src/dental/gpt-4-1-nano && python gpt4_nano_benchmark.py --clear-results
+	@echo "Results cleared. You can now run 'make gpt-4-1-nano' to start fresh."
+
+.PHONY: gpt-o3-clear  
+gpt-o3-clear: benchmark-deps
+	@echo "Clearing O3-mini results and restarting..."
+	cd src/dental/o3-mini && python o3_mini_benchmark.py --clear-results
+	@echo "Results cleared. You can now run 'make gpt-o3' to start fresh."
+
 .PHONY: benchmark-clean
 benchmark-clean:
-	@echo "Cleaning benchmark checkpoints and results..."
-	rm -rf checkpoints/dental/ results/dental/
+	@echo "Cleaning benchmark results..."
+	rm -rf results/dental/
 	@echo "Benchmark clean completed."
 
 .PHONY: benchmark-status
 benchmark-status:
 	@echo "Checking benchmark status..."
-	@if [ -d "checkpoints/dental" ]; then \
-		echo "Checkpoints found:"; \
-		ls -la checkpoints/dental/; \
-	else \
-		echo "No checkpoints found."; \
-	fi
 	@if [ -d "results/dental" ]; then \
 		echo "Results found:"; \
 		ls -la results/dental/; \
+		echo ""; \
+		echo "Progress summary:"; \
+		for file in results/dental/*.csv; do \
+			if [ -f "$$file" ]; then \
+				lines=$$(wc -l < "$$file"); \
+				completed=$$((lines - 1)); \
+				echo "  $$(basename $$file): $$completed questions completed"; \
+			fi; \
+		done; \
 	else \
 		echo "No results found."; \
 	fi
