@@ -9,6 +9,11 @@ import subprocess
 import logging
 from datetime import datetime
 
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -29,6 +34,8 @@ def run_gpt41_nano_benchmark(args):
         cmd.extend(["--save-frequency", str(args.save_frequency)])
     if args.clear_checkpoints:
         cmd.append("--clear-checkpoint")
+    if args.export_csv:
+        cmd.append("--export-csv")
     if args.output_dir:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_path = os.path.join(args.output_dir, f"gpt41_nano_results_{timestamp}.json")
@@ -61,6 +68,8 @@ def run_o3_mini_benchmark(args):
         cmd.extend(["--save-frequency", str(args.save_frequency)])
     if args.clear_checkpoints:
         cmd.append("--clear-checkpoint")
+    if args.export_csv:
+        cmd.append("--export-csv")
     if args.output_dir:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_path = os.path.join(args.output_dir, f"o3_mini_results_{timestamp}.json")
@@ -107,6 +116,8 @@ def main():
                       help='Save checkpoint every N questions (default: 5)')
     parser.add_argument('--clear-checkpoints', action='store_true',
                       help='Clear existing checkpoints and start fresh')
+    parser.add_argument('--export-csv', action='store_true',
+                      help='Also export results to CSV format')
     
     args = parser.parse_args()
     

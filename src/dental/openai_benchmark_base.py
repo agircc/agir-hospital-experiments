@@ -8,6 +8,11 @@ import openai
 from typing import Dict, Any
 import logging
 from datetime import datetime
+import pandas as pd
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Add parent directory to path to import base class
 sys.path.append('..')
@@ -228,4 +233,34 @@ class OpenAIBenchmark(DentalBenchmark):
         # Clear checkpoint after successful completion
         self.clear_checkpoint()
         
-        return benchmark_results 
+        return benchmark_results
+    
+    def save_results_csv(self, results: Dict[str, Any], output_path: str = None) -> str:
+        """Save benchmark results to CSV file for data analysis"""
+        if output_path is None:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_path = f"{self.model_name}_dental_results_{timestamp}.csv"
+        
+        # Flatten results for CSV format
+        flattened_results = []
+        for result in results['results']:
+            flat_result = {
+                'model_name': results['model_name'],
+                'model_id': results['model_id'],
+                'question_id': result['question_id'],
+                'question': result['question'][:200] + '...' if len(result['question']) > 200 else result['question'],  # Truncate long questions
+                'correct_option': result['correct_option'],
+                'predicted_answer': result['predicted_answer'],
+                'is_correct': result['is_correct'],
+                'topic': result['topic'],
+                'subject': result['subject'],
+                'response_length': len(result['response'])
+            }
+            flattened_results.append(flat_result)
+        
+        # Create DataFrame and save to CSV
+        df = pd.DataFrame(flattened_results)
+        df.to_csv(output_path, index=False, encoding='utf-8')
+        
+        logger.info(f"CSV results saved to {output_path}")
+        return output_path 

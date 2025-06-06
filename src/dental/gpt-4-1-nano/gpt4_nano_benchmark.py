@@ -32,6 +32,8 @@ def main():
                       help='Save checkpoint every N questions (default: 5)')
     parser.add_argument('--clear-checkpoint', action='store_true',
                       help='Clear existing checkpoint and start fresh')
+    parser.add_argument('--export-csv', action='store_true',
+                      help='Also export results to CSV format')
     
     args = parser.parse_args()
     
@@ -56,6 +58,12 @@ def main():
         # Save results
         output_path = benchmark.save_results(results, args.output)
         
+        # Export to CSV if requested
+        csv_path = None
+        if args.export_csv:
+            csv_base = args.output.replace('.json', '.csv') if args.output else None
+            csv_path = benchmark.save_results_csv(results, csv_base)
+        
         # Print summary
         print("\n" + "="*50)
         print("GPT-4.1-nano Dental Benchmark Results")
@@ -66,6 +74,8 @@ def main():
         print(f"Accuracy: {results['accuracy']:.2%}")
         print(f"Duration: {results['duration_seconds']:.2f} seconds")
         print(f"Results saved to: {output_path}")
+        if csv_path:
+            print(f"CSV exported to: {csv_path}")
         
     except Exception as e:
         logger.error(f"Benchmark failed: {e}")
