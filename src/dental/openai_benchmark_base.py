@@ -76,10 +76,9 @@ class OpenAIBenchmark(DentalBenchmark):
             
             # Use different parameters based on model
             if 'o3' in self.model_id.lower():
-                # O3 models use max_completion_tokens and don't support temperature
-                # O3 models may need more tokens for proper response
-                params['max_completion_tokens'] = max(50, self.max_tokens)
-                # Note: temperature is not supported for O3 models
+                # O3 models don't support additional parameters
+                # Keep only the basic required parameters
+                pass
             else:
                 # Other models use max_tokens and temperature
                 params['max_tokens'] = self.max_tokens
@@ -261,8 +260,19 @@ class OpenAIBenchmark(DentalBenchmark):
     def save_results_csv(self, results: Dict[str, Any], output_path: str = None) -> str:
         """Save benchmark results to CSV file for data analysis"""
         if output_path is None:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_path = f"{self.model_name}_dental_results_{timestamp}.csv"
+            # Find project root by looking for .git directory or Makefile
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            project_root = current_dir
+            while project_root != os.path.dirname(project_root):  # Not at filesystem root
+                if os.path.exists(os.path.join(project_root, '.git')) or os.path.exists(os.path.join(project_root, 'Makefile')):
+                    break
+                project_root = os.path.dirname(project_root)
+            
+            # Create results/dental directory if it doesn't exist
+            results_dir = os.path.join(project_root, "results", "dental")
+            os.makedirs(results_dir, exist_ok=True)
+            
+            output_path = os.path.join(results_dir, f"{self.model_name}_dental_results.csv")
         
         # Flatten results for CSV format
         flattened_results = []

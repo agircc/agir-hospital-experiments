@@ -166,8 +166,19 @@ Please select the correct answer and respond with only the letter (A, B, C, or D
     def save_results(self, results: Dict[str, Any], output_path: str = None) -> str:
         """Save benchmark results to JSON file"""
         if output_path is None:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_path = f"{self.model_name}_dental_results_{timestamp}.json"
+            # Find project root by looking for .git directory or Makefile
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            project_root = current_dir
+            while project_root != os.path.dirname(project_root):  # Not at filesystem root
+                if os.path.exists(os.path.join(project_root, '.git')) or os.path.exists(os.path.join(project_root, 'Makefile')):
+                    break
+                project_root = os.path.dirname(project_root)
+            
+            # Create results/dental directory if it doesn't exist
+            results_dir = os.path.join(project_root, "results", "dental")
+            os.makedirs(results_dir, exist_ok=True)
+            
+            output_path = os.path.join(results_dir, f"{self.model_name}_dental_results.json")
         
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(results, f, indent=2, ensure_ascii=False)
