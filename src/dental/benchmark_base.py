@@ -47,7 +47,7 @@ class DentalBenchmark(ABC):
             writer = csv.writer(f)
             writer.writerow([
                 'question_id', 'question', 'correct_option', 'predicted_answer', 
-                'is_correct', 'response', 'topic', 'subject'
+                'is_correct', 'response'
             ])
         
         logger.info(f"CSV output initialized: {csv_path}")
@@ -63,9 +63,7 @@ class DentalBenchmark(ABC):
                 result['correct_option'],
                 result['predicted_answer'],
                 result['is_correct'],
-                result['response'][:100] + '...' if len(result['response']) > 100 else result['response'],
-                result['topic'],
-                result['subject']
+                result['response'][:100] + '...' if len(result['response']) > 100 else result['response']
             ])
     
     def load_test_data(self) -> List[Dict[str, Any]]:
