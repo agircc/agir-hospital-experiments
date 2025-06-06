@@ -22,19 +22,20 @@ help:
 	@echo "  show-subjects - Show available subjects in dataset"
 	@echo ""
 	@echo "Benchmark targets:"
-	@echo "  benchmark-dental        - Run dental benchmarks for all models"
-	@echo "  benchmark-dental-gpt41  - Run benchmark for GPT-4.1-nano only"
-	@echo "  benchmark-dental-o3     - Run benchmark for O3-mini only"
-	@echo "  benchmark-dental-test   - Run test benchmark (5 questions)"
-	@echo "  benchmark-dental-csv    - Run benchmark with CSV export"
-	@echo "  benchmark-clean         - Clean benchmark files"
-	@echo "  benchmark-status        - Check benchmark progress"
+	@echo "  gpt-4-1-nano           - Run GPT-4.1-nano benchmark"
+	@echo "  gpt-o3                 - Run O3-mini benchmark" 
+	@echo "  benchmark-clean        - Clean benchmark files"
+	@echo "  benchmark-status       - Check benchmark progress"
+	@echo ""
+	@echo "Parameters:"
+	@echo "  LIMIT=N                - Limit to N questions (e.g. make gpt-4-1-nano LIMIT=10)"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make train              # Process only train split"
 	@echo "  make test validation    # Process test and validation splits"
 	@echo "  make OUTPUT_DIR=my_data all  # Use custom output directory"
-	@echo "  make benchmark-dental   # Run dental AI benchmarks"
+	@echo "  make gpt-4-1-nano       # Run GPT-4.1-nano benchmark"
+	@echo "  make gpt-o3 LIMIT=10    # Run O3-mini with 10 questions"
 
 # Install dependencies
 .PHONY: install
@@ -91,49 +92,46 @@ benchmark-deps:
 	@echo "Installing dental benchmark dependencies..."
 	pip install -r src/dental/requirements.txt
 
-.PHONY: benchmark-dental
-benchmark-dental: benchmark-deps
-	@echo "Running dental benchmark for all models..."
-	cd src/dental && python run_benchmarks.py
+# GPT-4.1-nano benchmark
+.PHONY: gpt-4-1-nano
+gpt-4-1-nano:
+	@echo "Running GPT-4.1-nano dental benchmark..."
+	@if [ -n "$(LIMIT)" ]; then \
+		echo "Limiting to $(LIMIT) questions..."; \
+		cd src/dental/gpt-4-1-nano && python gpt4_nano_benchmark.py --limit $(LIMIT); \
+	else \
+		cd src/dental/gpt-4-1-nano && python gpt4_nano_benchmark.py; \
+	fi
 
-.PHONY: benchmark-dental-gpt41
-benchmark-dental-gpt41: benchmark-deps
-	@echo "Running dental benchmark for GPT-4.1-nano..."
-	cd src/dental && python run_benchmarks.py --models gpt4.1-nano
-
-.PHONY: benchmark-dental-o3
-benchmark-dental-o3: benchmark-deps
-	@echo "Running dental benchmark for O3-mini..."
-	cd src/dental && python run_benchmarks.py --models o3-mini
-
-.PHONY: benchmark-dental-test
-benchmark-dental-test: benchmark-deps
-	@echo "Running dental benchmark test (limited questions)..."
-	cd src/dental && python run_benchmarks.py --limit 1
-
-.PHONY: benchmark-dental-csv
-benchmark-dental-csv: benchmark-deps
-	@echo "Running dental benchmark with CSV export..."
-	cd src/dental && python run_benchmarks.py --export-csv
+# O3-mini benchmark  
+.PHONY: gpt-o3
+gpt-o3: benchmark-deps
+	@echo "Running O3-mini dental benchmark..."
+	@if [ -n "$(LIMIT)" ]; then \
+		echo "Limiting to $(LIMIT) questions..."; \
+		cd src/dental/o3-mini && python o3_mini_benchmark.py --limit $(LIMIT); \
+	else \
+		cd src/dental/o3-mini && python o3_mini_benchmark.py; \
+	fi
 
 .PHONY: benchmark-clean
 benchmark-clean:
 	@echo "Cleaning benchmark checkpoints and results..."
-	cd src/dental && rm -rf checkpoints/ results/
+	rm -rf checkpoints/dental/ results/dental/
 	@echo "Benchmark clean completed."
 
 .PHONY: benchmark-status
 benchmark-status:
 	@echo "Checking benchmark status..."
-	@if [ -d "src/dental/checkpoints" ]; then \
+	@if [ -d "checkpoints/dental" ]; then \
 		echo "Checkpoints found:"; \
-		ls -la src/dental/checkpoints/; \
+		ls -la checkpoints/dental/; \
 	else \
 		echo "No checkpoints found."; \
 	fi
-	@if [ -d "src/dental/results" ]; then \
+	@if [ -d "results/dental" ]; then \
 		echo "Results found:"; \
-		ls -la src/dental/results/; \
+		ls -la results/dental/; \
 	else \
 		echo "No results found."; \
 	fi
