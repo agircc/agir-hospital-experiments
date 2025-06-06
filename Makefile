@@ -110,7 +110,7 @@ gpt-4-1-nano:
 
 # O3-mini benchmark  
 .PHONY: gpt-o3
-gpt-o3: benchmark-deps
+gpt-o3:
 	@echo "Running O3-mini dental benchmark..."
 	@if [ -n "$(LIMIT)" ]; then \
 		echo "Limiting to $(LIMIT) additional questions..."; \
