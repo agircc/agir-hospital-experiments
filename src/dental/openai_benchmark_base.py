@@ -34,7 +34,7 @@ class OpenAIBenchmark(DentalBenchmark):
                 if os.path.exists(os.path.join(project_root, '.git')) or os.path.exists(os.path.join(project_root, 'Makefile')):
                     break
                 project_root = os.path.dirname(project_root)
-            data_path = os.path.join(project_root, "datasets_by_subject", "dental_test.jsonl")
+            data_path = os.path.join(project_root, "datasets_by_subject", "dental_valid.jsonl")
         
         super().__init__(model_name, data_path)
         

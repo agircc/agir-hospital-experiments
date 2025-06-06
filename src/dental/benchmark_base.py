@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class DentalBenchmark(ABC):
     """Base class for dental subject benchmarking"""
     
-    def __init__(self, model_name: str, data_path: str = "../../datasets_by_subject/dental_test.jsonl"):
+    def __init__(self, model_name: str, data_path: str = "../../datasets_by_subject/dental_valid.jsonl"):
         self.model_name = model_name
         self.data_path = data_path
         self.questions = []

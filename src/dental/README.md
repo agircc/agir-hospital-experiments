@@ -29,7 +29,7 @@ First, generate the dental test dataset:
 
 ```bash
 # From project root directory
-make test  # This will create datasets_by_subject/dental_test.jsonl
+make valid  # This will create datasets_by_subject/dental_valid.jsonl
 ```
 
 ### 3. Set API Key
