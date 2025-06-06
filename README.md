@@ -83,7 +83,7 @@ python src/dataset_process/seperate_dataset_by_subject.py --splits all --output-
 
 The dental subject contains specialized medical questions related to dentistry. Current benchmark implementations:
 
-- **GPT-4-1-nano**: OpenAI's latest nano model for medical QA
+- **GPT-4.1-nano**: OpenAI's latest nano model for medical QA
 - **O3-mini**: OpenAI's optimized mini model for medical reasoning
 
 Each model directory contains:

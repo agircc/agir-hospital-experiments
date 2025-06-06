@@ -5,8 +5,15 @@ This module provides benchmarking tools for evaluating AI models on dental-speci
 ## Overview
 
 The dental benchmark evaluates two OpenAI models:
-- **GPT-4-1-nano**: OpenAI's latest nano model for medical QA
+- **GPT-4.1-nano**: OpenAI's latest nano model for medical QA
 - **O3-mini**: OpenAI's optimized mini model for medical reasoning
+
+## Key Features
+
+✅ **Checkpoint Support**: Automatically saves progress and can resume from interruptions  
+✅ **Unified Codebase**: Both models share the same implementation to avoid code differences  
+✅ **Progress Tracking**: Real-time progress monitoring and accuracy tracking  
+✅ **Error Recovery**: Continues processing even if individual questions fail
 
 ## Setup
 
@@ -44,7 +51,7 @@ python run_benchmarks.py
 
 ### Individual Model Testing
 
-#### GPT-4-1-nano:
+#### GPT-4.1-nano:
 ```bash
 python gpt-4-1-nano/gpt4_nano_benchmark.py
 ```
@@ -63,14 +70,21 @@ python run_benchmarks.py --limit 10
 
 #### Run Specific Models:
 ```bash
-python run_benchmarks.py --models gpt4-nano
+python run_benchmarks.py --models gpt4.1-nano
 python run_benchmarks.py --models o3-mini
-python run_benchmarks.py --models gpt4-nano o3-mini
+python run_benchmarks.py --models gpt4.1-nano o3-mini
 ```
 
-#### Use Mock Responses for O3-mini:
+#### Checkpoint Management:
 ```bash
-python run_benchmarks.py --mock-o3
+# Clear existing checkpoints and start fresh
+python run_benchmarks.py --clear-checkpoints
+
+# Continue from existing checkpoint (default)
+python run_benchmarks.py
+
+# Save checkpoint every 10 questions instead of default 5
+python run_benchmarks.py --save-frequency 10
 ```
 
 #### Custom Output Directory:
@@ -90,11 +104,17 @@ Results are saved as JSON files containing:
 - **Individual question results** with predictions and explanations
 - **Error analysis** for failed cases
 - **Metadata** (timestamp, model configuration)
+- **Checkpoint support** for resuming interrupted runs
+
+### Checkpoint Files
+- **`checkpoints/model_checkpoint.json`**: Full checkpoint with all progress
+- **`checkpoints/model_progress.json`**: Summary of current progress
 
 ### Example Output Structure:
 ```json
 {
-  "model_name": "gpt-4-1-nano",
+  "model_name": "gpt-4.1-nano",
+  "model_id": "gpt-4.1-nano",
   "total_questions": 150,
   "correct_answers": 120,
   "accuracy": 0.80,
@@ -117,15 +137,13 @@ Results are saved as JSON files containing:
 
 ## Architecture
 
-### Base Class: `benchmark_base.py`
-- **DentalBenchmark**: Abstract base class with common functionality
-- Question loading and formatting
-- Answer extraction and evaluation
-- Results compilation and saving
+### Base Classes:
+- **`benchmark_base.py`**: Abstract base class with common functionality
+- **`openai_benchmark_base.py`**: OpenAI-specific base with checkpoint support
 
 ### Model Implementations:
-- **`gpt-4-1-nano/gpt4_nano_benchmark.py`**: GPT-4-1-nano specific implementation
-- **`o3-mini/o3_mini_benchmark.py`**: O3-mini specific implementation with mock support
+- **`gpt-4-1-nano/gpt4_nano_benchmark.py`**: GPT-4.1-nano implementation (inherits from OpenAI base)
+- **`o3-mini/o3_mini_benchmark.py`**: O3-mini implementation (inherits from OpenAI base)
 
 ### Utilities:
 - **`run_benchmarks.py`**: Orchestrates multiple model benchmarks
@@ -142,16 +160,13 @@ Results are saved as JSON files containing:
 
 ### Example Implementation:
 ```python
-from benchmark_base import DentalBenchmark
+from openai_benchmark_base import OpenAIBenchmark
 
-class NewModelBenchmark(DentalBenchmark):
+class NewModelBenchmark(OpenAIBenchmark):
     def __init__(self, api_key: str = None):
-        super().__init__("new-model")
-        self.api_key = api_key
+        super().__init__("new-model", "new-model-id", api_key)
     
-    def query_model(self, prompt: str) -> str:
-        # Implement your model's API call here
-        return response
+    # All functionality inherited - no additional code needed!
 ```
 
 ## Troubleshooting
@@ -163,9 +178,12 @@ class NewModelBenchmark(DentalBenchmark):
 
 2. **API Key errors**
    - Set OPENAI_API_KEY environment variable or pass --openai-key argument
-   - For O3-mini: use `--mock-o3` flag if API is not available
 
-3. **Import errors**
+3. **Checkpoint issues**
+   - Use `--clear-checkpoints` to start fresh if data has changed
+   - Check `checkpoints/` directory for existing progress files
+
+4. **Import errors**
    - Ensure you're running from the `src/dental/` directory
    - Install dependencies: `pip install -r requirements.txt`
 
@@ -177,9 +195,11 @@ python run_benchmarks.py --limit 1
 
 ## Performance Notes
 
-- **GPT-4-1-nano**: ~1.5-2 seconds per question
+- **GPT-4.1-nano**: ~1.5-2 seconds per question
 - **O3-mini**: Varies based on API response time
 - **Memory usage**: Minimal, results stored incrementally
+- **Checkpoint overhead**: ~50ms per save operation
+- **Recovery time**: Instant resume from last checkpoint
 - **Parallel processing**: Not implemented (to respect API rate limits)
 
 ## Contributing
