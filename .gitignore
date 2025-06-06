@@ -131,12 +131,6 @@ dmypy.json
 # Dataset processing outputs
 dataset/
 
-# Benchmark results and checkpoints
-src/dental/results/
-src/dental/checkpoints/
-*.json
-*.csv
-
 # AI/ML model outputs
 models/
 weights/
