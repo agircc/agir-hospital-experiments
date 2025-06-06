@@ -59,9 +59,10 @@ class OpenAIBenchmark(DentalBenchmark):
     def query_model(self, prompt: str) -> str:
         """Query OpenAI model"""
         try:
-            response = self.client.chat.completions.create(
-                model=self.model_id,
-                messages=[
+            # Prepare API call parameters
+            params = {
+                'model': self.model_id,
+                'messages': [
                     {
                         "role": "system", 
                         "content": "You are a medical expert specializing in dental medicine. Answer multiple choice questions accurately and provide clear reasoning."
@@ -70,10 +71,20 @@ class OpenAIBenchmark(DentalBenchmark):
                         "role": "user", 
                         "content": prompt
                     }
-                ],
-                max_tokens=self.max_tokens,
-                temperature=self.temperature
-            )
+                ]
+            }
+            
+            # Use different parameters based on model
+            if 'o3' in self.model_id.lower():
+                # O3 models use max_completion_tokens and don't support temperature
+                params['max_completion_tokens'] = self.max_tokens
+                # Note: temperature is not supported for O3 models
+            else:
+                # Other models use max_tokens and temperature
+                params['max_tokens'] = self.max_tokens
+                params['temperature'] = self.temperature
+            
+            response = self.client.chat.completions.create(**params)
             
             return response.choices[0].message.content.strip()
             
@@ -191,7 +202,7 @@ class OpenAIBenchmark(DentalBenchmark):
                 result = {
                     'question_id': question_data['id'],
                     'question': question_data['question'],
-                    'correct_option': question_data['cop'],
+                    'correct_option': self.get_correct_option_letter(question_data['cop']),
                     'predicted_answer': predicted_answer,
                     'is_correct': is_correct,
                     'response': response,
@@ -210,7 +221,7 @@ class OpenAIBenchmark(DentalBenchmark):
                 result = {
                     'question_id': question_data['id'],
                     'question': question_data['question'],
-                    'correct_option': question_data['cop'],
+                    'correct_option': self.get_correct_option_letter(question_data['cop']),
                     'predicted_answer': 'ERROR',
                     'is_correct': False,
                     'response': f"Error: {e}",

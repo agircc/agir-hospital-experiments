@@ -87,9 +87,15 @@ Please select the correct answer (A, B, C, or D) and briefly explain your reason
     
     def evaluate_answer(self, predicted: str, correct_option: int) -> bool:
         """Evaluate if predicted answer matches correct option"""
-        option_map = {1: 'A', 2: 'B', 3: 'C', 4: 'D'}
+        # Convert numeric option to letter (0-based indexing)
+        option_map = {0: 'A', 1: 'B', 2: 'C', 3: 'D'}
         correct_letter = option_map.get(correct_option, '')
         return predicted == correct_letter
+    
+    def get_correct_option_letter(self, correct_option: int) -> str:
+        """Convert numeric correct option to letter format"""
+        option_map = {0: 'A', 1: 'B', 2: 'C', 3: 'D', -1: 'UNKNOWN'}
+        return option_map.get(correct_option, 'UNKNOWN')
     
     @abstractmethod
     def query_model(self, prompt: str) -> str:
@@ -126,7 +132,7 @@ Please select the correct answer (A, B, C, or D) and briefly explain your reason
                 result = {
                     'question_id': question_data['id'],
                     'question': question_data['question'],
-                    'correct_option': question_data['cop'],
+                    'correct_option': self.get_correct_option_letter(question_data['cop']),
                     'predicted_answer': predicted_answer,
                     'is_correct': is_correct,
                     'response': response,
@@ -141,7 +147,7 @@ Please select the correct answer (A, B, C, or D) and briefly explain your reason
                 result = {
                     'question_id': question_data['id'],
                     'question': question_data['question'],
-                    'correct_option': question_data['cop'],
+                    'correct_option': self.get_correct_option_letter(question_data['cop']),
                     'predicted_answer': 'ERROR',
                     'is_correct': False,
                     'response': f"Error: {e}",
