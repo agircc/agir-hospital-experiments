@@ -37,6 +37,16 @@ MedMCQA is a large-scale Multiple-Choice Question Answering (MCQA) dataset desig
 └── README.md
 ```
 
+## Setup
+
+### Environment Variables
+
+Create a `.env` file in the project root with your OpenAI API key:
+
+```bash
+OPENAI_API_KEY=your-openai-api-key-here
+```
+
 ## Usage
 
 ### Dataset Processing
@@ -63,6 +73,31 @@ make status
 
 # Clean output
 make clean
+```
+
+### Dental Benchmarks
+
+Run AI model benchmarks on dental questions:
+
+```bash
+# Run all models
+make benchmark-dental
+
+# Run specific models
+make benchmark-dental-gpt41
+make benchmark-dental-o3
+
+# Run test with limited questions
+make benchmark-dental-test
+
+# Export results to CSV
+make benchmark-dental-csv
+
+# Check benchmark status
+make benchmark-status
+
+# Clean benchmark results
+make benchmark-clean
 ```
 
 ### Custom Processing

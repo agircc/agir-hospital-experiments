@@ -34,10 +34,17 @@ make test  # This will create datasets_by_subject/dental_test.jsonl
 
 ### 3. Set API Key
 
-Both models use the same OpenAI API key:
+Both models use the same OpenAI API key. You can either:
 
+**Option 1: Environment variable**
 ```bash
 export OPENAI_API_KEY="your-openai-api-key"
+```
+
+**Option 2: .env file (Recommended)**
+Create a `.env` file in the project root:
+```bash
+OPENAI_API_KEY=your-openai-api-key-here
 ```
 
 ## Usage
@@ -97,16 +104,30 @@ python run_benchmarks.py --output-dir my_results
 python run_benchmarks.py --openai-key sk-xxx
 ```
 
+#### Export to CSV:
+```bash
+python run_benchmarks.py --export-csv
+```
+
 ## Output
 
-Results are saved as JSON files containing:
-- **Model performance metrics** (accuracy, duration)
-- **Individual question results** with predictions and explanations
-- **Error analysis** for failed cases
-- **Metadata** (timestamp, model configuration)
-- **Checkpoint support** for resuming interrupted runs
+### Output Formats
 
-### Checkpoint Files
+**JSON (Default)** - Complete results with full model responses:
+- Model performance metrics (accuracy, duration)
+- Individual question results with predictions and explanations
+- Error analysis for failed cases
+- Metadata (timestamp, model configuration)
+- Checkpoint support for resuming interrupted runs
+
+**CSV (Optional)** - Simplified tabular format for analysis:
+- Flattened data suitable for Excel/pandas
+- Question summaries and results
+- Performance metrics per question
+
+### Files Generated
+- **`results/model_results_timestamp.json`**: Complete JSON results
+- **`results/model_results_timestamp.csv`**: CSV export (if requested)
 - **`checkpoints/model_checkpoint.json`**: Full checkpoint with all progress
 - **`checkpoints/model_progress.json`**: Summary of current progress
 

@@ -14,8 +14,7 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Add parent directory to path to import base class
-sys.path.append('..')
+# Import base class from same directory
 from benchmark_base import DentalBenchmark
 
 logger = logging.getLogger(__name__)
@@ -24,8 +23,19 @@ class OpenAIBenchmark(DentalBenchmark):
     """Base class for OpenAI model benchmarking with checkpoint support"""
     
     def __init__(self, model_name: str, model_id: str, api_key: str = None, 
-                 data_path: str = "../../../datasets_by_subject/dental_test.jsonl",
+                 data_path: str = None,
                  checkpoint_dir: str = "checkpoints"):
+        # Set default data path if not provided
+        if data_path is None:
+            # Find project root by looking for .git directory
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            project_root = current_dir
+            while project_root != os.path.dirname(project_root):  # Not at filesystem root
+                if os.path.exists(os.path.join(project_root, '.git')) or os.path.exists(os.path.join(project_root, 'Makefile')):
+                    break
+                project_root = os.path.dirname(project_root)
+            data_path = os.path.join(project_root, "datasets_by_subject", "dental_test.jsonl")
+        
         super().__init__(model_name, data_path)
         
         # Initialize OpenAI client
@@ -143,8 +153,9 @@ class OpenAIBenchmark(DentalBenchmark):
         
         logger.info(f"Starting {self.model_name} benchmark on dental test set")
         
-        # Load test data
-        self.load_test_data()
+        # Load test data if not already loaded
+        if not hasattr(self, 'questions') or not self.questions:
+            self.load_test_data()
         
         # Load checkpoint
         start_index, existing_results = self.load_checkpoint()

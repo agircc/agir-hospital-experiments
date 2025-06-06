@@ -6,7 +6,7 @@ import sys
 import logging
 
 # Add parent directory to path to import base class
-sys.path.append('..')
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from openai_benchmark_base import OpenAIBenchmark
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class GPT41NanoBenchmark(OpenAIBenchmark):
     """GPT-4.1-nano implementation for dental benchmarking"""
     
-    def __init__(self, api_key: str = None, data_path: str = "../../../datasets_by_subject/dental_test.jsonl"):
+    def __init__(self, api_key: str = None, data_path: str = None):
         # Initialize with correct model name and ID
         super().__init__("gpt-4.1-nano", "gpt-4.1-nano", api_key, data_path)
 
@@ -24,8 +24,8 @@ def main():
     
     parser = argparse.ArgumentParser(description='Run GPT-4.1-nano benchmark on dental test set')
     parser.add_argument('--api-key', help='OpenAI API key (or set OPENAI_API_KEY env var)')
-    parser.add_argument('--data-path', default='../../../datasets_by_subject/dental_test.jsonl',
-                      help='Path to dental test data')
+    parser.add_argument('--data-path', 
+                      help='Path to dental test data (default: auto-detect project root)')
     parser.add_argument('--output', help='Output file path for results')
     parser.add_argument('--limit', type=int, help='Limit number of questions for testing')
     parser.add_argument('--save-frequency', type=int, default=5, 
