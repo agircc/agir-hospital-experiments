@@ -211,6 +211,9 @@ class OpenAIBenchmark(DentalBenchmark):
                 }
                 self.results.append(result)
                 
+                # Write result to CSV immediately
+                self.write_result_to_csv(result)
+                
                 # Save checkpoint periodically
                 if (i + 1) % save_frequency == 0:
                     self.save_checkpoint(i + 1, self.results)
@@ -229,6 +232,9 @@ class OpenAIBenchmark(DentalBenchmark):
                     'subject': question_data.get('subject_name', 'Dental')
                 }
                 self.results.append(result)
+                
+                # Write error result to CSV immediately
+                self.write_result_to_csv(result)
                 
                 # Save checkpoint on error too
                 self.save_checkpoint(i + 1, self.results)
@@ -257,43 +263,4 @@ class OpenAIBenchmark(DentalBenchmark):
         
         return benchmark_results
     
-    def save_results_csv(self, results: Dict[str, Any], output_path: str = None) -> str:
-        """Save benchmark results to CSV file for data analysis"""
-        if output_path is None:
-            # Find project root by looking for .git directory or Makefile
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            project_root = current_dir
-            while project_root != os.path.dirname(project_root):  # Not at filesystem root
-                if os.path.exists(os.path.join(project_root, '.git')) or os.path.exists(os.path.join(project_root, 'Makefile')):
-                    break
-                project_root = os.path.dirname(project_root)
-            
-            # Create results/dental directory if it doesn't exist
-            results_dir = os.path.join(project_root, "results", "dental")
-            os.makedirs(results_dir, exist_ok=True)
-            
-            output_path = os.path.join(results_dir, f"{self.model_name}_dental_results.csv")
-        
-        # Flatten results for CSV format
-        flattened_results = []
-        for result in results['results']:
-            flat_result = {
-                'model_name': results['model_name'],
-                'model_id': results['model_id'],
-                'question_id': result['question_id'],
-                'question': result['question'][:200] + '...' if len(result['question']) > 200 else result['question'],  # Truncate long questions
-                'correct_option': result['correct_option'],
-                'predicted_answer': result['predicted_answer'],
-                'is_correct': result['is_correct'],
-                'topic': result['topic'],
-                'subject': result['subject'],
-                'response_length': len(result['response'])
-            }
-            flattened_results.append(flat_result)
-        
-        # Create DataFrame and save to CSV
-        df = pd.DataFrame(flattened_results)
-        df.to_csv(output_path, index=False, encoding='utf-8')
-        
-        logger.info(f"CSV results saved to {output_path}")
-        return output_path 
+ 

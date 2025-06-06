@@ -4,6 +4,7 @@ Base class for dental subject benchmarking
 import json
 import os
 import time
+import csv
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Tuple
 import logging
@@ -22,6 +23,51 @@ class DentalBenchmark(ABC):
         self.questions = []
         self.results = []
         
+        # Setup CSV output path
+        self.csv_path = self._setup_csv_output()
+        
+    def _setup_csv_output(self) -> str:
+        """Setup CSV output file path and create directory if needed"""
+        # Find project root by looking for .git directory or Makefile
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = current_dir
+        while project_root != os.path.dirname(project_root):  # Not at filesystem root
+            if os.path.exists(os.path.join(project_root, '.git')) or os.path.exists(os.path.join(project_root, 'Makefile')):
+                break
+            project_root = os.path.dirname(project_root)
+        
+        # Create results/dental directory if it doesn't exist
+        results_dir = os.path.join(project_root, "results", "dental")
+        os.makedirs(results_dir, exist_ok=True)
+        
+        csv_path = os.path.join(results_dir, f"{self.model_name}_dental_results.csv")
+        
+        # Initialize CSV file with headers
+        with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                'question_id', 'question', 'correct_option', 'predicted_answer', 
+                'is_correct', 'response', 'topic', 'subject'
+            ])
+        
+        logger.info(f"CSV output initialized: {csv_path}")
+        return csv_path
+    
+    def write_result_to_csv(self, result: Dict[str, Any]):
+        """Write a single result to CSV file"""
+        with open(self.csv_path, 'a', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                result['question_id'],
+                result['question'][:200] + '...' if len(result['question']) > 200 else result['question'],
+                result['correct_option'],
+                result['predicted_answer'],
+                result['is_correct'],
+                result['response'][:100] + '...' if len(result['response']) > 100 else result['response'],
+                result['topic'],
+                result['subject']
+            ])
+    
     def load_test_data(self) -> List[Dict[str, Any]]:
         """Load dental test data from JSONL file"""
         if not os.path.exists(self.data_path):
@@ -128,6 +174,9 @@ Please select the correct answer and respond with only the letter (A, B, C, or D
                 }
                 self.results.append(result)
                 
+                # Write result to CSV
+                self.write_result_to_csv(result)
+                
             except Exception as e:
                 logger.error(f"Error processing question {i+1}: {e}")
                 # Store error result
@@ -142,6 +191,9 @@ Please select the correct answer and respond with only the letter (A, B, C, or D
                     'subject': question_data.get('subject_name', 'Dental')
                 }
                 self.results.append(result)
+                
+                # Write error result to CSV
+                self.write_result_to_csv(result)
         
         end_time = time.time()
         duration = end_time - start_time
@@ -163,25 +215,4 @@ Please select the correct answer and respond with only the letter (A, B, C, or D
         
         return benchmark_results
     
-    def save_results(self, results: Dict[str, Any], output_path: str = None) -> str:
-        """Save benchmark results to JSON file"""
-        if output_path is None:
-            # Find project root by looking for .git directory or Makefile
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            project_root = current_dir
-            while project_root != os.path.dirname(project_root):  # Not at filesystem root
-                if os.path.exists(os.path.join(project_root, '.git')) or os.path.exists(os.path.join(project_root, 'Makefile')):
-                    break
-                project_root = os.path.dirname(project_root)
-            
-            # Create results/dental directory if it doesn't exist
-            results_dir = os.path.join(project_root, "results", "dental")
-            os.makedirs(results_dir, exist_ok=True)
-            
-            output_path = os.path.join(results_dir, f"{self.model_name}_dental_results.json")
-        
-        with open(output_path, 'w', encoding='utf-8') as f:
-            json.dump(results, f, indent=2, ensure_ascii=False)
-        
-        logger.info(f"Results saved to {output_path}")
-        return output_path 
+ 
