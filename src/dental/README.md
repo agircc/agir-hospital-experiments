@@ -8,6 +8,15 @@ The dental benchmark evaluates two OpenAI models:
 - **GPT-4.1-nano**: OpenAI's latest nano model for medical QA
 - **O3-mini**: OpenAI's optimized mini model for medical reasoning
 
+## Results
+GPT-4.1-nano Dental Benchmark Results:
+- Model: gpt-4.1-nano (gpt-4.1-nano)
+- Dataset Total: 1318 questions
+- Total Completed: 1318/1318
+- This Run: 1311 questions processed
+- This Run Accuracy: 690/1311 (52.63%)
+- Duration: 675.88 seconds
+
 ## Key Features
 
 ✅ **Checkpoint Support**: Automatically saves progress and can resume from interruptions  
