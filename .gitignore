@@ -129,7 +129,6 @@ dmypy.json
 .pyre/
 
 # Dataset processing outputs
-datasets_by_subject/
 dataset/
 
 # Benchmark results and checkpoints
