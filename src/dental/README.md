@@ -46,6 +46,11 @@ agir_v4
 - Correct predictions: 673
 - Accuracy: 51.06%
 
+agir_v5
+- Total processed: 1318
+- Correct predictions: 680
+- Accuracy: 51.59%
+
 ## Key Features
 
 ✅ **Checkpoint Support**: Automatically saves progress and can resume from interruptions  
