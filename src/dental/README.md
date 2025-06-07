@@ -9,52 +9,38 @@ The dental benchmark evaluates two OpenAI models:
 - **O3-mini**: OpenAI's optimized mini model for medical reasoning
 
 ## Results
-GPT-4.1-nano Dental Benchmark Results:
-- Model: gpt-4.1-nano (gpt-4.1-nano)
-- Dataset Total: 1318 questions
-- Total Completed: 1318/1318
-- This Run: 1311 questions processed
-- This Run Accuracy: 690/1311 (52.63%)
-- Duration: 675.88 seconds
 
+```
+Dental AI Models Performance Summary
+============================================================
+Model Name       Total Questions  Correct  Incorrect  Accuracy     
+------------------------------------------------------------
+GPT-4.1-nano     1318            695      623        52.73%
+O3-mini          1318            843      475        63.96%
+AGIR-V2          1318            683      635        51.82%
+AGIR-V5          1318            680      638        51.59%
+AGIR-V4          1318            673      645        51.06%
+AGIR-V3          1318            680      638        51.59%
+AGIR-V6          1318            700      618        53.11%
+============================================================
 
-O3-mini Dental Benchmark Results:
-- Model: o3-mini (o3-mini)
-- Dataset Total: 1318 questions
-- Total Completed: 1318/1318
-- This Run: 1311 questions processed
-- This Run Accuracy: 839/1311 (64.00%)
-- Duration: 4790.66 seconds
+Model Ranking (by Accuracy):
+------------------------------
+1. O3-mini: 63.96%
+2. AGIR-V6: 53.11%
+3. GPT-4.1-nano: 52.73%
+4. AGIR-V2: 51.82%
+5. AGIR-V5: 51.59%
+6. AGIR-V3: 51.59%
+7. AGIR-V4: 51.06%
+```
 
-agir:
-- Total processed: 1318
-- Correct predictions: 680
-- Accuracy: 51.59%
-
-agir v2:
-- Total processed: 1318
-- Correct predictions: 683
-- Accuracy: 51.82%
-
-agir_v3
-- Total processed: 1318
-- Correct predictions: 680
-- Accuracy: 51.59%
-
-agir_v4
-- Total processed: 1318
-- Correct predictions: 673
-- Accuracy: 51.06%
-
-agir_v5
-- Total processed: 1318
-- Correct predictions: 680
-- Accuracy: 51.59%
-
-agir_v6:
-- Total processed: 1318
-- Correct predictions: 700
-- Accuracy: 53.11%
+### Key Findings:
+- **O3-mini** performs best with **63.96%** accuracy on dental questions
+- **AGIR-V6** is the best AGIR version with **53.11%** accuracy  
+- **GPT-4.1-nano** achieves **52.73%** accuracy
+- All AGIR versions perform similarly (51-53%), with V6 showing improvement
+- Total dataset: **1,318 dental questions** from MedMCQA
 
 ## Key Features
 
