@@ -162,10 +162,10 @@ def process_question(question_data: Dict[str, Any], question_index: int) -> Opti
     # Extract the predicted answer
     predicted_answer = extract_answer(response)
     
-    # Get correct answer - convert cop (1-4) to letter (A-D)
-    correct_option_num = question_data.get('cop', 0)
-    if correct_option_num in [1, 2, 3, 4]:
-        correct_answer = chr(ord('A') + correct_option_num - 1)  # 1->A, 2->B, 3->C, 4->D
+    # Get correct answer - convert cop (0-3) to letter (A-D)
+    correct_option_num = question_data.get('cop', -1)
+    if correct_option_num in [0, 1, 2, 3]:
+        correct_answer = chr(ord('A') + correct_option_num)  # 0->A, 1->B, 2->C, 3->D
     else:
         print(f"Warning: Invalid correct option {correct_option_num} for question {question_id}")
         correct_answer = "UNKNOWN"
