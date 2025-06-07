@@ -26,7 +26,7 @@ def find_project_root():
     return Path(__file__).resolve().parent
 
 PROJECT_ROOT = find_project_root()
-DATASET_PATH = PROJECT_ROOT / 'datasets_by_subject' / 'dental_test.jsonl'
+DATASET_PATH = PROJECT_ROOT / 'datasets_by_subject' / 'dental_valid.jsonl'
 RESULTS_DIR = PROJECT_ROOT / 'results' / 'dental'
 RESULTS_FILE = RESULTS_DIR / 'agir_results.json'
 CSV_FILE = RESULTS_DIR / 'agir_results.csv'
