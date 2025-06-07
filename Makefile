@@ -24,10 +24,12 @@ help:
 	@echo "Benchmark targets:"
 	@echo "  gpt-4-1-nano           - Run GPT-4.1-nano benchmark"
 	@echo "  gpt-o3                 - Run O3-mini benchmark" 
+	@echo "  agir                   - Run AGIR local model benchmark"
 	@echo "  benchmark-clean        - Clean benchmark results"
 	@echo "  benchmark-status       - Check benchmark progress"
 	@echo "  gpt-4-1-nano-clear     - Clear GPT-4.1-nano results and restart"
 	@echo "  gpt-o3-clear           - Clear O3-mini results and restart"
+	@echo "  agir-clear             - Clear AGIR results and restart"
 	@echo ""
 	@echo "Parameters:"
 	@echo "  LIMIT=N                - Process N additional questions (e.g. make gpt-4-1-nano LIMIT=10)"
@@ -40,6 +42,8 @@ help:
 	@echo "  make gpt-4-1-nano       # Run GPT-4.1-nano benchmark on all remaining questions"
 	@echo "  make gpt-4-1-nano LIMIT=1  # Process 1 additional question (continues from where left off)"
 	@echo "  make gpt-o3 LIMIT=10    # Run O3-mini with 10 additional questions"
+	@echo "  make agir               # Run AGIR local model benchmark"
+	@echo "  make agir LIMIT=5       # Run AGIR with 5 additional questions"
 
 # Install dependencies
 .PHONY: install
@@ -120,6 +124,18 @@ gpt-o3:
 		cd src/dental/o3-mini && python o3_mini_benchmark.py; \
 	fi
 
+# AGIR local model benchmark
+.PHONY: agir
+agir:
+	@echo "Running AGIR local model dental benchmark..."
+	@if [ -n "$(LIMIT)" ]; then \
+		echo "Limiting to $(LIMIT) additional questions..."; \
+		cd src/dental/agir && python agir_dental_benchmark.py --limit $(LIMIT); \
+	else \
+		echo "Running all remaining questions..."; \
+		cd src/dental/agir && python agir_dental_benchmark.py; \
+	fi
+
 # Clear results and restart benchmarks
 .PHONY: gpt-4-1-nano-clear
 gpt-4-1-nano-clear:
@@ -132,6 +148,12 @@ gpt-o3-clear: benchmark-deps
 	@echo "Clearing O3-mini results and restarting..."
 	cd src/dental/o3-mini && python o3_mini_benchmark.py --clear-results
 	@echo "Results cleared. You can now run 'make gpt-o3' to start fresh."
+
+.PHONY: agir-clear
+agir-clear:
+	@echo "Clearing AGIR results and restarting..."
+	cd src/dental/agir && python agir_dental_benchmark.py --clear-results
+	@echo "Results cleared. You can now run 'make agir' to start fresh."
 
 .PHONY: benchmark-clean
 benchmark-clean:
