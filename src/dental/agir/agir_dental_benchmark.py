@@ -13,7 +13,7 @@ load_dotenv()
 
 # Configuration
 LOCAL_API_BASE = "http://localhost:8000"
-USER_ID = "e030d930-913d-4525-8478-1cf77b698364"
+USER_ID = "544b17ee-0aa3-44c6-b14c-7a67d21f5ecd"
 
 # File paths - using absolute path detection like other benchmarks
 def find_project_root():
@@ -27,7 +27,7 @@ def find_project_root():
 
 PROJECT_ROOT = find_project_root()
 DATASET_PATH = PROJECT_ROOT / 'datasets_by_subject' / 'dental_test.jsonl'
-RESULTS_DIR = PROJECT_ROOT / 'results' / 'dental' / 'agir'
+RESULTS_DIR = PROJECT_ROOT / 'results' / 'dental'
 RESULTS_FILE = RESULTS_DIR / 'agir_results.json'
 CSV_FILE = RESULTS_DIR / 'agir_results.csv'
 PROGRESS_FILE = RESULTS_DIR / 'agir_progress.json'
