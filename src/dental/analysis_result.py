@@ -22,21 +22,51 @@ class DentalResultsAnalyzer:
         self.comparison_data = None
         
     def load_data(self):
-        """Load CSV files for all models."""
-        csv_files = {
-            'AGIR': 'agir_results.csv',
+        """Load CSV files for all models from root directory and subdirectories."""
+        # First load from root directory
+        root_csv_files = {
             'GPT-4.1-nano': 'gpt-4.1-nano_dental_results.csv', 
             'O3-mini': 'o3-mini_dental_results.csv'
         }
         
-        for model_name, filename in csv_files.items():
+        for model_name, filename in root_csv_files.items():
             file_path = self.results_dir / filename
             if file_path.exists():
                 print(f"Loading {model_name} data from {filename}...")
                 self.models[model_name] = pd.read_csv(file_path)
                 print(f"  {model_name}: {len(self.models[model_name])} questions loaded")
             else:
-                print(f"Warning: {filename} not found!")
+                print(f"Warning: {filename} not found in root directory!")
+        
+        # Then scan subdirectories for CSV files
+        if self.results_dir.exists():
+            for subdir in self.results_dir.iterdir():
+                if subdir.is_dir():
+                    print(f"\nScanning subdirectory: {subdir.name}")
+                    
+                    # Look for CSV files in subdirectory
+                    csv_files = list(subdir.glob("*.csv"))
+                    
+                    for csv_file in csv_files:
+                        # Create model name from subdirectory and file name
+                        model_name = f"{subdir.name}_{csv_file.stem}"
+                        
+                        # Simplify model name for better readability
+                        if csv_file.name == 'agir_results.csv':
+                            model_name = subdir.name.upper().replace('_', '-')
+                        else:
+                            model_name = f"{subdir.name}_{csv_file.stem}".replace('_', '-')
+                        
+                        try:
+                            print(f"  Loading {model_name} data from {csv_file.name}...")
+                            self.models[model_name] = pd.read_csv(csv_file)
+                            print(f"    {model_name}: {len(self.models[model_name])} questions loaded")
+                        except Exception as e:
+                            print(f"    Error loading {csv_file.name}: {e}")
+        
+        print(f"\nTotal models loaded: {len(self.models)}")
+        for model_name in self.models.keys():
+            print(f"  - {model_name}")
         
         return self.models
     
@@ -195,23 +225,33 @@ class DentalResultsAnalyzer:
         # Calculate metrics for plotting
         metrics = self.calculate_basic_metrics()
         
-        # Create subplots
-        fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+        if not metrics:
+            print("No data to visualize")
+            return
+        
+        # Adjust figure size based on number of models
+        num_models = len(metrics)
+        fig_width = max(15, num_models * 2)
+        fig, axes = plt.subplots(2, 2, figsize=(fig_width, 12))
         fig.suptitle('Dental AI Models Performance Analysis', fontsize=16, fontweight='bold')
         
         # 1. Accuracy Comparison
         models = list(metrics.keys())
         accuracies = [metrics[model]['accuracy_percent'] for model in models]
         
-        bars = axes[0, 0].bar(models, accuracies, color=['#FF6B6B', '#4ECDC4', '#45B7D1'])
+        # Generate colors for all models
+        colors = plt.cm.Set3(np.linspace(0, 1, num_models))
+        
+        bars = axes[0, 0].bar(models, accuracies, color=colors)
         axes[0, 0].set_title('Model Accuracy Comparison', fontweight='bold')
         axes[0, 0].set_ylabel('Accuracy (%)')
         axes[0, 0].set_ylim(0, 100)
+        axes[0, 0].tick_params(axis='x', rotation=45)
         
         # Add value labels on bars
         for bar, acc in zip(bars, accuracies):
             axes[0, 0].text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1, 
-                           f'{acc:.1f}%', ha='center', va='bottom', fontweight='bold')
+                           f'{acc:.1f}%', ha='center', va='bottom', fontweight='bold', fontsize=8)
         
         # 2. Correct vs Incorrect Questions
         correct_counts = [metrics[model]['correct_answers'] for model in models]
@@ -226,7 +266,7 @@ class DentalResultsAnalyzer:
         axes[0, 1].set_title('Correct vs Incorrect Answers', fontweight='bold')
         axes[0, 1].set_ylabel('Number of Questions')
         axes[0, 1].set_xticks(x)
-        axes[0, 1].set_xticklabels(models)
+        axes[0, 1].set_xticklabels(models, rotation=45, ha='right')
         axes[0, 1].legend()
         
         # 3. Question Difficulty Analysis (if comparison data available)
@@ -252,22 +292,30 @@ class DentalResultsAnalyzer:
         # 4. Model Agreement Analysis
         if self.comparison_data is not None:
             agreement_stats = self.analyze_agreement()
-            if agreement_stats:
+            if agreement_stats and len(agreement_stats) > 0:
                 agreement_labels = list(agreement_stats.keys())
                 agreement_values = list(agreement_stats.values())
                 
+                # Generate colors for agreement bars
+                agreement_colors = plt.cm.viridis(np.linspace(0, 1, len(agreement_labels)))
+                
                 bars = axes[1, 1].bar(range(len(agreement_labels)), agreement_values, 
-                                     color=['#9B59B6', '#3498DB', '#1ABC9C'])
+                                     color=agreement_colors)
                 axes[1, 1].set_title('Model Agreement Analysis', fontweight='bold')
                 axes[1, 1].set_ylabel('Agreement (%)')
                 axes[1, 1].set_xticks(range(len(agreement_labels)))
-                axes[1, 1].set_xticklabels(agreement_labels, rotation=45, ha='right')
+                axes[1, 1].set_xticklabels(agreement_labels, rotation=45, ha='right', fontsize=8)
                 axes[1, 1].set_ylim(0, 100)
                 
                 # Add value labels
                 for bar, val in zip(bars, agreement_values):
                     axes[1, 1].text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
-                                   f'{val:.1f}%', ha='center', va='bottom')
+                                   f'{val:.1f}%', ha='center', va='bottom', fontsize=8)
+            else:
+                axes[1, 1].text(0.5, 0.5, 'Not enough common\nquestions for\nagreement analysis', 
+                               ha='center', va='center', transform=axes[1, 1].transAxes,
+                               fontsize=12, bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray"))
+                axes[1, 1].set_title('Model Agreement Analysis', fontweight='bold')
         
         plt.tight_layout()
         plt.show()
