@@ -27,7 +27,7 @@ def find_project_root():
 
 PROJECT_ROOT = find_project_root()
 DATASET_PATH = PROJECT_ROOT / 'datasets_by_subject' / 'dental_valid.jsonl'
-RESULTS_DIR = PROJECT_ROOT / 'results' / 'dental' / 'agir_v5'
+RESULTS_DIR = PROJECT_ROOT / 'results' / 'dental' / 'agir_v6'
 RESULTS_FILE = RESULTS_DIR / 'agir_results.json'
 CSV_FILE = RESULTS_DIR / 'agir_results.csv'
 PROGRESS_FILE = RESULTS_DIR / 'agir_progress.json'
@@ -74,22 +74,16 @@ def create_prompt(question_data: Dict[str, Any]) -> str:
     option_c = question_data['opc']
     option_d = question_data['opd']
     
-    return f"""You are a medical expert. Please answer the following multiple-choice question by selecting the best answer.
+    return f"""Medical Question (Dental):
+{question}
 
-Question: {question}
-
+Options:
 A) {option_a}
 B) {option_b}
 C) {option_c}
 D) {option_d}
 
-Instructions:
-- Carefully read the question and all options
-- Select the most accurate answer based on medical knowledge
-- Respond with ONLY the letter of your choice: A, B, C, or D
-- Do not include any explanation or additional text
-
-Your answer:"""
+Please select the correct answer and respond with only the letter (A, B, C, or D)."""
 
 def call_local_api(prompt: str, max_retries: int = 3) -> Optional[str]:
     """Call the local API to get a completion."""
