@@ -26,6 +26,11 @@ O3-mini Dental Benchmark Results:
 - This Run Accuracy: 839/1311 (64.00%)
 - Duration: 4790.66 seconds
 
+agir:
+- Total processed: 1318
+- Correct predictions: 680
+- Accuracy: 51.59%
+
 ## Key Features
 
 ✅ **Checkpoint Support**: Automatically saves progress and can resume from interruptions  
