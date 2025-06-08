@@ -27,7 +27,7 @@ def find_project_root():
 
 PROJECT_ROOT = find_project_root()
 DATASET_PATH = PROJECT_ROOT / 'datasets_by_subject' / 'dental_valid.jsonl'
-RESULTS_DIR = PROJECT_ROOT / 'results' / 'dental' / 'agir_v6'
+RESULTS_DIR = PROJECT_ROOT / 'results' / 'dental' / 'agir_v8'
 RESULTS_FILE = RESULTS_DIR / 'agir_results.json'
 CSV_FILE = RESULTS_DIR / 'agir_results.csv'
 PROGRESS_FILE = RESULTS_DIR / 'agir_progress.json'

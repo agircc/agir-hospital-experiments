@@ -35,6 +35,11 @@ Model Ranking (by Accuracy):
 7. AGIR-V4: 51.06%
 ```
 
+v7:
+- Total processed: 1318
+- Correct predictions: 671
+- Accuracy: 50.91%
+
 ### Key Findings:
 - **O3-mini** performs best with **63.96%** accuracy on dental questions
 - **AGIR-V6** is the best AGIR version with **53.11%** accuracy  
